@@ -7,4 +7,5 @@ namespace OvertakerPlugin;
 public class OvertakerConfiguration : IValidateConfiguration<OvertakerConfigurationValidator>
 {
     public int MinimumSpeedKmh { get; init; } = 85;
+    public int MinimumDistanceMeters { get; init; } = 7;
 }
