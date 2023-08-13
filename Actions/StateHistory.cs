@@ -16,4 +16,9 @@ public class StateHistory
         TickStates.Enqueue(tickState);
         return tickState;
     }
+
+    public class NeedsHistoryAttribute : Attribute
+    {
+        public int StateCount { get; init; } = 1;
+    }
 }
