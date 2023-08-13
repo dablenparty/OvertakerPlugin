@@ -3,7 +3,7 @@ using Serilog;
 
 namespace OvertakerPlugin.Actions;
 
-internal class StateHistory
+public class StateHistory
 {
     private readonly ILogger _logger = Log.ForContext<StateHistory>();
     internal FixedSizedQueue<TickState> TickStates { get; private init; } = new(100);

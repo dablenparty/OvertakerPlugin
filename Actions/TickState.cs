@@ -2,7 +2,7 @@
 
 namespace OvertakerPlugin.Actions;
 
-internal readonly struct TickState
+public readonly struct TickState
 {
     public Dictionary<string, EntryCar> EntryCars { get; init; }
     public DateTime TimeOfTick { get; init; }
