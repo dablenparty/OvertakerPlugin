@@ -1,6 +1,6 @@
 ﻿using AssettoServer.Server;
 
-namespace OvertakerPlugin.Actions;
+namespace OvertakerPlugin.State;
 
 public readonly struct TickState
 {

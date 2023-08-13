@@ -1,4 +1,6 @@
-﻿namespace OvertakerPlugin.Actions;
+﻿using OvertakerPlugin.State;
+
+namespace OvertakerPlugin.Actions;
 
 public abstract class Action
 {

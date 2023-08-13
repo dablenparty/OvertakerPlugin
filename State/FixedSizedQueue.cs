@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
 
-namespace OvertakerPlugin.Actions;
+namespace OvertakerPlugin.State;
 
 internal class FixedSizedQueue<T> : ConcurrentQueue<T>
 {
-    public int Size { get; init; }
+    private int Size { get; }
     
     public FixedSizedQueue(int size)
     {

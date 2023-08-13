@@ -1,7 +1,7 @@
 ﻿using AssettoServer.Server;
 using Serilog;
 
-namespace OvertakerPlugin.Actions;
+namespace OvertakerPlugin.State;
 
 public class StateHistory
 {
