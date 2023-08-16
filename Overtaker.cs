@@ -14,13 +14,15 @@ public class Overtaker : CriticalBackgroundService, IAssettoServerAutostart
     private readonly ActionHistory _actionHistory;
     private readonly EntryCarManager _entryCarManager;
     private readonly ILogger _logger = Log.ForContext<Overtaker>();
-    private readonly Dictionary<string, uint> _scores = new();
+    private readonly uint[] _scores;
 
     public Overtaker(OvertakerConfiguration configuration, EntryCarManager entryCarManager,
         IHostApplicationLifetime applicationLifetime) : base(
         applicationLifetime)
     {
         _entryCarManager = entryCarManager;
+        _scores = new uint[_entryCarManager.EntryCars.Length];
+        Array.Fill<uint>(_scores, 0);
         _entryCarManager.ClientConnected += (sender, _) =>
         {
             sender.FirstUpdateSent += OnClientFirstUpdateSent;
@@ -35,28 +37,26 @@ public class Overtaker : CriticalBackgroundService, IAssettoServerAutostart
     private void OnClientCollision(ACTcpClient sender, CollisionEventArgs args)
     {
         // TODO: save score to file
-        _scores[sender.HashedGuid] = 0;
-        // environment collision
-        // if (args.TargetCar is null)
-        //     return;
+        _scores[sender.SessionId] = 0;
     }
 
     private void OnClientDisconnected(ACTcpClient sender, EventArgs args)
     {
         // TODO: save score to file
-        _scores.Remove(sender.HashedGuid);
+        _scores[sender.SessionId] = 0;
     }
 
     private void OnClientFirstUpdateSent(ACTcpClient sender, EventArgs args)
     {
-        _scores.Add(sender.HashedGuid, 0);
+        // TODO: load high score from file
+        _scores[sender.SessionId] = 0;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await Task.Run(() =>
+        while (!stoppingToken.IsCancellationRequested)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            await Task.Run(() =>
             {
                 StateHistory.NewTickHappened(_entryCarManager);
                 // maybe this is possible, maybe not
@@ -64,12 +64,9 @@ public class Overtaker : CriticalBackgroundService, IAssettoServerAutostart
                 // TODO: parallelize this. HEAVILY CONSIDER ASYNC/AWAIT
                 var scoreUpdates = _actionHistory.ScoreAllActions();
                 foreach (var (key, value) in scoreUpdates)
-                    if (_scores.TryGetValue(key, out var score))
-                        _scores[key] = score + value;
-                    else
-                        _scores.Add(key, value);
-            }
-            // TODO: save scores to file
-        }, stoppingToken);
+                    _scores[key] += value;
+                // TODO: save scores to file
+            }, stoppingToken);
+        }
     }
 }

@@ -15,9 +15,9 @@ public class ActionHistory
         _registeredActions.Add("Overtake", new OvertakeAction(configuration));
     }
 
-    public Dictionary<string, uint> ScoreAllActions()
+    public Dictionary<byte, uint> ScoreAllActions()
     {
-        var scoreUpdates = new Dictionary<string, uint>();
+        var scoreUpdates = new Dictionary<byte, uint>();
         foreach (var (name, action) in _registeredActions)
         {
             // this really really long line gets the StateCount value from the NeedsHistoryAttribute on the first
@@ -45,8 +45,9 @@ public class ActionHistory
             // TODO: add to history
             _logger.Debug("Action {ActionName} scored {ScoreUpdates}", name, innerScoreUpdates);
             foreach (var (key, value) in innerScoreUpdates)
-                if (!scoreUpdates.TryAdd(key, value))
-                    scoreUpdates[key] += value;
+            {
+                
+            }
         }
 
         return scoreUpdates;

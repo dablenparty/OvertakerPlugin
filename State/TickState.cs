@@ -4,40 +4,28 @@ namespace OvertakerPlugin.State;
 
 public readonly struct TickState
 {
-    public Dictionary<string, CarState> CarStates { get; init; }
+    public CarState[] CarStates { get; }
     public DateTime TimeOfTick { get; init; }
+    
+    public CarState this[byte sessionId] => CarStates[sessionId];
 
-    public TickState(IEnumerable<EntryCar> entryCars, DateTime timeOfTick)
+    public TickState(IReadOnlyCollection<EntryCar> entryCars, DateTime timeOfTick)
     {
-        var carStates = new Dictionary<string, CarState>();
+        CarStates = new CarState[entryCars.Count];
         foreach (var entryCar in entryCars)
         {
             var carState = new CarState(entryCar);
-            if (!entryCar.AiControlled)
+            // AI cars don't keep their EntryCar.Status property updated, so we have to do it ourselves
+            if (entryCar.AiControlled)
             {
-                carStates.Add(entryCar.Client?.HashedGuid ?? entryCar.Model, carState);
-                continue;
+                entryCar.GetPositionUpdateForCar(entryCar, out var positionUpdate);
+                carState.Position = positionUpdate.Position;
+                carState.Velocity = positionUpdate.Velocity;
             }
 
-            // AI cars don't keep their EntryCar.Status property updated, so we have to do it ourselves
-            entryCar.GetPositionUpdateForCar(entryCar, out var positionUpdate);
-            carState.Position = positionUpdate.Position;
-            carState.Velocity = positionUpdate.Velocity;
-            carStates.Add(entryCar.AiName ?? entryCar.Model, carState);
+            CarStates[entryCar.SessionId] = carState;
         }
 
-        CarStates = carStates;
         TimeOfTick = timeOfTick;
-    }
-
-    /// <summary>
-    ///     Funky method to get a car from a car. This is used by the event loop to get car data from multiple TickState's
-    /// </summary>
-    /// <param name="key">The car to get the key from</param>
-    /// <param name="car">The CarState, if found</param>
-    /// <returns>true if the CarState was found, false otherwise</returns>
-    public bool TryGetCarByCar(EntryCar key, out CarState car)
-    {
-        return CarStates.TryGetValue(key.Client?.HashedGuid ?? key.Model, out car);
     }
 }
