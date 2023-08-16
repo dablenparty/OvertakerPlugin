@@ -1,9 +1,10 @@
-﻿using System.Numerics;
-using AssettoServer.Network.Tcp;
+﻿using AssettoServer.Network.Tcp;
 using AssettoServer.Server;
 using AssettoServer.Server.Plugin;
 using AssettoServer.Shared.Services;
 using Microsoft.Extensions.Hosting;
+using OvertakerPlugin.Actions;
+using OvertakerPlugin.State;
 using Serilog;
 
 namespace OvertakerPlugin;
@@ -11,19 +12,33 @@ namespace OvertakerPlugin;
 public class Overtaker : CriticalBackgroundService, IAssettoServerAutostart
 {
     private readonly ILogger _logger = Log.ForContext<Overtaker>();
-    private readonly OvertakerConfiguration _configuration;
     private readonly EntryCarManager _entryCarManager;
-    private readonly Dictionary<string, int> _scores = new();
+    private readonly Dictionary<string, uint> _scores = new();
+    private readonly ActionHistory _actionHistory;
 
     public Overtaker(OvertakerConfiguration configuration, EntryCarManager entryCarManager,
         IHostApplicationLifetime applicationLifetime) : base(
         applicationLifetime)
     {
-        _configuration = configuration;
         _entryCarManager = entryCarManager;
-        _entryCarManager.ClientConnected += (sender, _) => sender.FirstUpdateSent += OnClientFirstUpdateSent;
+        _entryCarManager.ClientConnected += (sender, _) =>
+        {
+            sender.FirstUpdateSent += OnClientFirstUpdateSent;
+            sender.Collision += OnClientCollision;
+        };
         _entryCarManager.ClientDisconnected += OnClientDisconnected;
+        _actionHistory = new ActionHistory(configuration);
+        _logger.Information("Loaded {ConfigType}: {@Config}", nameof(OvertakerConfiguration), configuration);
         // TODO: load scores from file
+    }
+
+    private void OnClientCollision(ACTcpClient sender, CollisionEventArgs args)
+    {
+        // TODO: save score to file
+        _scores[sender.HashedGuid] = 0;
+        // environment collision
+        // if (args.TargetCar is null)
+        //     return;
     }
 
     private void OnClientDisconnected(ACTcpClient sender, EventArgs args)
@@ -37,30 +52,26 @@ public class Overtaker : CriticalBackgroundService, IAssettoServerAutostart
         _scores.Add(sender.HashedGuid, 0);
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        await Task.Run(() =>
         {
-            // maybe this is possible, maybe not
-            // TODO: keep track of player controlled cars separately for more efficient access
-            foreach (var entryCar in _entryCarManager.EntryCars)
+            while (!stoppingToken.IsCancellationRequested)
             {
-                var speedKmh = OvertakerUtils.KmhFromAcVelocity(entryCar.Status.Velocity);
-                if (entryCar.AiControlled || speedKmh < _configuration.MinimumSpeedKmh)
-                    continue;
-                // this is just proof-of-concept at the moment showing how to get nearby cars using Microsoft's
-                // (dogshit) built-in Vector3 class
-                var nearbyCars = _entryCarManager.EntryCars
-                    .Where(c => c != entryCar && Vector3.Distance(c.Status.Position, entryCar.Status.Position) <=
-                        _configuration.MinimumDistanceMeters)
-                    .ToList();
-                if (nearbyCars.Count == 0)
-                    continue;
-                // TODO: score overtakes
+                StateHistory.NewTickHappened(_entryCarManager);
+                // maybe this is possible, maybe not
+                // TODO: keep track of player controlled cars separately for more efficient access
+                // TODO: parallelize this. HEAVILY CONSIDER ASYNC/AWAIT
+                var scoreUpdates = _actionHistory.ScoreAllActions();
+                foreach (var (key, value) in scoreUpdates)
+                {
+                    if (_scores.TryGetValue(key, out var score))
+                        _scores[key] = score + value;
+                    else
+                        _scores.Add(key, value);
+                }
             }
-        }
-
-        // TODO: save scores to file
-        return Task.CompletedTask;
+            // TODO: save scores to file
+        }, stoppingToken);
     }
 }
