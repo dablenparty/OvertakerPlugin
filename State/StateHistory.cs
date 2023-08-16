@@ -4,6 +4,10 @@ namespace OvertakerPlugin.State;
 
 public class StateHistory
 {
+    private StateHistory()
+    {
+    }
+
     public static StateHistory CurrentHistory { get; } = new();
 
     internal FixedSizedQueue<TickState> TickStates { get; } = new(100);
@@ -18,10 +22,6 @@ public class StateHistory
     {
         var tickState = new TickState(entryCarManager.EntryCars, DateTime.Now);
         CurrentHistory.TickStates.Enqueue(tickState);
-    }
-
-    private StateHistory()
-    {
     }
 
     /// <summary>

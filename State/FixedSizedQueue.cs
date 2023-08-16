@@ -4,13 +4,13 @@ namespace OvertakerPlugin.State;
 
 internal class FixedSizedQueue<T> : ConcurrentQueue<T>
 {
-    private int Size { get; }
-    
     public FixedSizedQueue(int size)
     {
         Size = size;
     }
-    
+
+    private int Size { get; }
+
     public new void Enqueue(T value)
     {
         base.Enqueue(value);

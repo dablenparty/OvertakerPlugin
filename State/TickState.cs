@@ -15,7 +15,7 @@ public readonly struct TickState
     }
 
     /// <summary>
-    /// Funky method to get a car from a car. This is used by the event loop to get car data from multiple TickState's
+    ///     Funky method to get a car from a car. This is used by the event loop to get car data from multiple TickState's
     /// </summary>
     /// <param name="key">The car to get the key from</param>
     /// <param name="car">The CarState, if found</param>

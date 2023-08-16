@@ -11,10 +11,10 @@ namespace OvertakerPlugin;
 
 public class Overtaker : CriticalBackgroundService, IAssettoServerAutostart
 {
-    private readonly ILogger _logger = Log.ForContext<Overtaker>();
-    private readonly EntryCarManager _entryCarManager;
-    private readonly Dictionary<string, uint> _scores = new();
     private readonly ActionHistory _actionHistory;
+    private readonly EntryCarManager _entryCarManager;
+    private readonly ILogger _logger = Log.ForContext<Overtaker>();
+    private readonly Dictionary<string, uint> _scores = new();
 
     public Overtaker(OvertakerConfiguration configuration, EntryCarManager entryCarManager,
         IHostApplicationLifetime applicationLifetime) : base(
@@ -64,12 +64,10 @@ public class Overtaker : CriticalBackgroundService, IAssettoServerAutostart
                 // TODO: parallelize this. HEAVILY CONSIDER ASYNC/AWAIT
                 var scoreUpdates = _actionHistory.ScoreAllActions();
                 foreach (var (key, value) in scoreUpdates)
-                {
                     if (_scores.TryGetValue(key, out var score))
                         _scores[key] = score + value;
                     else
                         _scores.Add(key, value);
-                }
             }
             // TODO: save scores to file
         }, stoppingToken);
