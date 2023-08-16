@@ -9,8 +9,24 @@ public readonly struct TickState
 
     public TickState(IEnumerable<EntryCar> entryCars, DateTime timeOfTick)
     {
-        // TODO: differentiate between players and AI since AI cars don't update their Status property for some reason
-        CarStates = entryCars.ToDictionary(c => c.Client?.HashedGuid ?? c.Model, c => new CarState(c));
+        var carStates = new Dictionary<string, CarState>();
+        foreach (var entryCar in entryCars)
+        {
+            var carState = new CarState(entryCar);
+            if (!entryCar.AiControlled)
+            {
+                carStates.Add(entryCar.Client?.HashedGuid ?? entryCar.Model, carState);
+                continue;
+            }
+
+            // AI cars don't keep their EntryCar.Status property updated, so we have to do it ourselves
+            entryCar.GetPositionUpdateForCar(entryCar, out var positionUpdate);
+            carState.Position = positionUpdate.Position;
+            carState.Velocity = positionUpdate.Velocity;
+            carStates.Add(entryCar.AiName ?? entryCar.Model, carState);
+        }
+
+        CarStates = carStates;
         TimeOfTick = timeOfTick;
     }
 
