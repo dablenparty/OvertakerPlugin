@@ -8,7 +8,7 @@ namespace OvertakerPlugin.Actions;
 public class ActionHistory
 {
     private readonly ILogger _logger = Log.ForContext<ActionHistory>();
-    private readonly Dictionary<string, Action> _registeredActions = new();
+    private readonly Dictionary<string, AbstractOvertakerAction> _registeredActions = new();
 
     public ActionHistory(OvertakerConfiguration configuration)
     {
@@ -22,7 +22,7 @@ public class ActionHistory
         {
             // this really really long line gets the StateCount value from the NeedsHistoryAttribute on the first
             // parameter of the ScoreAction method, or 1 if the attribute is not present
-            var statesNeeded = action.GetType().GetMethod(nameof(Action.ScoreAction))?.GetParameters().FirstOrDefault()
+            var statesNeeded = action.GetType().GetMethod(nameof(AbstractOvertakerAction.ScoreAction))?.GetParameters().FirstOrDefault()
                 ?.GetCustomAttribute(typeof(StateHistory.NeedsHistoryAttribute), true)
                 .Cast<StateHistory.NeedsHistoryAttribute>()?.StateCount ?? 1;
             // actions depend on there being a certain number of states in the history; so, if there aren't enough

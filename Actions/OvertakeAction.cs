@@ -2,7 +2,7 @@
 
 namespace OvertakerPlugin.Actions;
 
-public class OvertakeAction : Action
+public class OvertakeAction : AbstractOvertakerAction
 {
     public OvertakeAction(OvertakerConfiguration configuration) : base(configuration)
     {

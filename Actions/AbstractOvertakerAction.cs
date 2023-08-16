@@ -2,12 +2,12 @@
 
 namespace OvertakerPlugin.Actions;
 
-public abstract class Action
+public abstract class AbstractOvertakerAction
 {
     protected readonly OvertakerConfiguration Configuration;
 
 
-    protected Action(OvertakerConfiguration configuration)
+    protected AbstractOvertakerAction(OvertakerConfiguration configuration)
     {
         Configuration = configuration;
     }
