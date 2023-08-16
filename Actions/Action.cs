@@ -14,5 +14,11 @@ public abstract class Action
         Configuration = configuration;
     }
 
-    public abstract int ScoreAction(List<TickState> stateHistory);
+    /// <summary>
+    /// Scores an action based on the state history. This method should return a Dictionary of score updates, meaning
+    /// the key is the client GUID hash and the value will be added to that client's total current score.
+    /// </summary>
+    /// <param name="stateHistory">State history. See StateHistory.NeedsHistory for how to populate this.</param>
+    /// <returns>Score updates</returns>
+    public abstract Dictionary<string, uint> ScoreAction(List<TickState> stateHistory);
 }
