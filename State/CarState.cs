@@ -23,6 +23,11 @@ public readonly struct CarState : IEquatable<CarState>
     }
 
     /// <summary>
+    ///     Alias for EntryCar.SessionId
+    /// </summary>
+    public byte SessionId => EntryCar.SessionId;
+
+    /// <summary>
     ///     Alias for EntryCar.Status.Velocity, measured in meters per second
     /// </summary>
     public Vector3 Velocity
@@ -57,8 +62,8 @@ public readonly struct CarState : IEquatable<CarState>
     public RelativePosition GetRelativePositionTo(CarState other)
     {
         // TODO: double check this math, it might not be right
-        var otherNormalizedVelocity = Vector3.Normalize(other.Velocity);
-        var normalizedDistance = Vector3.Normalize(Position - other.Position);
+        var otherNormalizedVelocity = other.Velocity;
+        var normalizedDistance = Position - other.Position;
         var angleDiff =
             OvertakerUtils.Vector3Angle(otherNormalizedVelocity, normalizedDistance);
         if (angleDiff < 0)
@@ -67,8 +72,8 @@ public readonly struct CarState : IEquatable<CarState>
         return angleDiff switch
         {
             >= 0 and < 45 or >= 315 and <= 360 => RelativePosition.Front,
-            >= 45 and < 135 or >= 225 and < 315 => RelativePosition.Behind,
-            _ => RelativePosition.Sides
+            >= 45 and < 135 or >= 225 and < 315 => RelativePosition.Sides,
+            _ => RelativePosition.Behind
         };
     }
 }
