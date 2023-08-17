@@ -14,15 +14,13 @@ public class Overtaker : CriticalBackgroundService, IAssettoServerAutostart
     private readonly ActionHistory _actionHistory;
     private readonly EntryCarManager _entryCarManager;
     private readonly ILogger _logger = Log.ForContext<Overtaker>();
-    private readonly uint[] _scores;
+    private readonly Dictionary<byte, uint> _scores = new();
 
     public Overtaker(OvertakerConfiguration configuration, EntryCarManager entryCarManager,
         IHostApplicationLifetime applicationLifetime) : base(
         applicationLifetime)
     {
         _entryCarManager = entryCarManager;
-        _scores = new uint[_entryCarManager.EntryCars.Length];
-        Array.Fill<uint>(_scores, 0);
         _entryCarManager.ClientConnected += (sender, _) =>
         {
             sender.FirstUpdateSent += OnClientFirstUpdateSent;
@@ -43,13 +41,13 @@ public class Overtaker : CriticalBackgroundService, IAssettoServerAutostart
     private void OnClientDisconnected(ACTcpClient sender, EventArgs args)
     {
         // TODO: save score to file
-        _scores[sender.SessionId] = 0;
+        _scores.Remove(sender.SessionId);
     }
 
     private void OnClientFirstUpdateSent(ACTcpClient sender, EventArgs args)
     {
         // TODO: load high score from file
-        _scores[sender.SessionId] = 0;
+        _scores.Add(sender.SessionId, 0);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
