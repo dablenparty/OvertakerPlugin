@@ -7,7 +7,7 @@ namespace OvertakerPlugin.Actions;
 
 public class ActionHistory
 {
-    private readonly ILogger _logger = Log.ForContext<ActionHistory>();
+    private static readonly ILogger Logger = Log.ForContext<ActionHistory>();
     private readonly Dictionary<string, AbstractOvertakerAction> _registeredActions = new();
 
     public ActionHistory(OvertakerConfiguration configuration)
@@ -22,7 +22,8 @@ public class ActionHistory
         {
             // this really really long line gets the StateCount value from the NeedsHistoryAttribute on the first
             // parameter of the ScoreAction method, or 1 if the attribute is not present
-            var statesNeeded = action.GetType().GetMethod(nameof(AbstractOvertakerAction.ScoreAction))?.GetParameters().FirstOrDefault()
+            var statesNeeded = action.GetType().GetMethod(nameof(AbstractOvertakerAction.ScoreAction))?.GetParameters()
+                .FirstOrDefault()
                 ?.GetCustomAttribute(typeof(StateHistory.NeedsHistoryAttribute), true)
                 .Cast<StateHistory.NeedsHistoryAttribute>()?.StateCount ?? 1;
             // actions depend on there being a certain number of states in the history; so, if there aren't enough
@@ -30,23 +31,27 @@ public class ActionHistory
             var availableStateCount = StateHistory.CurrentHistory.TickStates.Count;
             if (availableStateCount < statesNeeded)
             {
-                _logger.Debug(
+                Logger.Debug(
                     "\"{ActionName}\" action needs {StatesNeeded} states, but only {StatesAvailable} are available",
                     name, statesNeeded, availableStateCount);
                 continue;
             }
 
             var stateHistory = StateHistory.CurrentHistory.TickStates
+                .Reverse()
                 .Take(statesNeeded)
                 .ToList();
             var innerScoreUpdates = action.ScoreAction(stateHistory);
             if (innerScoreUpdates.Count == 0)
                 continue;
             // TODO: add to history
-            _logger.Debug("Action {ActionName} scored {ScoreUpdates}", name, innerScoreUpdates);
-            foreach (var (key, value) in innerScoreUpdates)
+            Logger.Debug("Action {ActionName} scored {ScoreUpdates}", name, innerScoreUpdates);
+            foreach (var (sessionId, scoreUpdate) in innerScoreUpdates)
             {
-                
+                if (scoreUpdates.ContainsKey(sessionId))
+                    scoreUpdates[sessionId] += scoreUpdate;
+                else
+                    scoreUpdates.Add(sessionId, scoreUpdate);
             }
         }
 
