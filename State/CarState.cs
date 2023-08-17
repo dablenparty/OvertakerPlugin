@@ -6,52 +6,58 @@ namespace OvertakerPlugin.State;
 
 public readonly struct CarState : IEquatable<CarState>
 {
-    public EntryCar EntryCar { get; }
+    private EntryCar EntryCarRef { get; }
+
+    /// <summary>
+    /// true if this car is controlled by AI, false if it is controlled by a player
+    /// </summary>
+    public bool AiControlled { get; }
 
     /// <summary>
     ///     Returns the name of the driver of this car. If the driver is not known, returns "Unknown";
     /// </summary>
-    public string DriverName => EntryCar.Client?.Name ?? "Unknown";
+    public string DriverName => (AiControlled ? EntryCarRef.AiName : EntryCarRef.Client?.Name) ?? "Unknown";
 
     /// <summary>
-    ///     Alias for EntryCar.Status.Position, measured in meters
+    ///     Position of this car, measured in meters
     /// </summary>
-    public Vector3 Position
-    {
-        get => EntryCar.Status.Position;
-        set => EntryCar.Status.Position = value;
-    }
+    public Vector3 Position { get; } = new();
 
     /// <summary>
-    ///     Alias for EntryCar.SessionId
+    ///     Velocity measured in meters per second
     /// </summary>
-    public byte SessionId => EntryCar.SessionId;
-
+    public Vector3 Velocity { get; } = new();
+    
     /// <summary>
-    ///     Alias for EntryCar.Status.Velocity, measured in meters per second
+    ///     This car's session ID
     /// </summary>
-    public Vector3 Velocity
-    {
-        get => EntryCar.Status.Velocity;
-        set => EntryCar.Status.Velocity = value;
-    }
+    public byte SessionId { get; }
+
 
     /// <summary>
     ///     Calculates the speed of the car in kilometers per hour (km/h)
     /// </summary>
-    public float SpeedKmh => OvertakerUtils.MsToKmh(EntryCar.Status.Velocity);
+    public float SpeedKmh => OvertakerUtils.MsToKmh(Velocity);
 
-    public bool Equals(CarState other) => EntryCar.Equals(other.EntryCar);
+    public bool Equals(CarState other) => EntryCarRef.Equals(other.EntryCarRef);
 
     public override bool Equals(object? obj) => obj is CarState other && Equals(other);
 
-    public override int GetHashCode() => EntryCar.GetHashCode();
+    public override int GetHashCode() => EntryCarRef.GetHashCode();
 
     public static bool operator ==(CarState left, CarState right) => left.Equals(right);
 
     public static bool operator !=(CarState left, CarState right) => !left.Equals(right);
 
-    public CarState(EntryCar entryCar) => EntryCar = entryCar;
+    public CarState(EntryCar entryCarRef)
+    {
+        EntryCarRef = entryCarRef;
+        AiControlled = entryCarRef.AiControlled;
+        // clone the position and velocity so that they don't change out from under us
+        Position = OvertakerUtils.CopyVector3(entryCarRef.Status.Position);
+        Velocity = OvertakerUtils.CopyVector3(entryCarRef.Status.Velocity);
+        SessionId = entryCarRef.SessionId;
+    }
 
     /// <summary>
     ///     Gets the relative position of this car to another car.
