@@ -32,4 +32,14 @@ public static class OvertakerUtils
         var degrees = radians * 180.0 / Math.PI;
         return (float) (degrees < 0 ? degrees + 360 : degrees);
     }
+
+    /// <summary>
+    ///     Copies a Vector3
+    /// </summary>
+    /// <param name="vector3">Vector to copy</param>
+    /// <returns>Copied vector</returns>
+    public static Vector3 CopyVector3(Vector3 vector3)
+    {
+        return new Vector3(vector3.X, vector3.Y, vector3.Z);
+    }
 }
