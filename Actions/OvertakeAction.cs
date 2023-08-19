@@ -12,11 +12,11 @@ public class OvertakeAction : AbstractOvertakerAction
     public sealed override string Name { get; init; } = "Overtake";
     public sealed override int Value { get; init; } = 100;
 
-    public override Dictionary<byte, uint> ScoreAction(
+    public override Dictionary<byte, ActionScore> ScoreAction(
         [StateHistory.NeedsHistory(StateCount = 2)]
         List<TickState> stateHistory)
     {
-        var scoreUpdates = new Dictionary<byte, uint>();
+        var scoreUpdates = new Dictionary<byte, ActionScore>();
 
         var thisTick = stateHistory[0];
         var prevTick = stateHistory[1];
@@ -62,10 +62,12 @@ public class OvertakeAction : AbstractOvertakerAction
             var speedDiffsAvg = speedDifferences.Average();
             var score = (uint) (Value * overtakes + distancesAvg + speedDiffsAvg +
                                 currentCarState.SpeedKmh);
-            if (scoreUpdates.TryGetValue(currentCarState.SessionId, out var existingScore))
-                scoreUpdates[currentCarState.SessionId] = existingScore + score;
-            else
-                scoreUpdates.Add(currentCarState.SessionId, score);
+            var actionScore = new ActionScore
+            {
+                Score = score,
+                HappenedAt = thisTick.TimeOfTick
+            };
+            scoreUpdates[currentCarState.SessionId] = actionScore;
         }
 
         return scoreUpdates;

@@ -1,60 +1,45 @@
-﻿using System.Reflection;
-using CommandLine;
-using OvertakerPlugin.State;
+﻿using System.Collections;
 using Serilog;
 
 namespace OvertakerPlugin.Actions;
 
-public class ActionHistory
+public class ActionHistory : IEnumerable<ActionScore>
 {
     private static readonly ILogger Logger = Log.ForContext<ActionHistory>();
-    private readonly Dictionary<string, AbstractOvertakerAction> _registeredActions = new();
+    private readonly List<ActionScore> _scores = new();
 
-    public ActionHistory(OvertakerConfiguration configuration)
+    public ActionScore this[int index] => _scores[index];
+
+    public uint TotalScore => _scores.Aggregate(0u, (current, score) => current + score.Score);
+
+    public static ActionHistory operator +(ActionHistory first, ActionHistory other)
     {
-        _registeredActions.Add("Overtake", new OvertakeAction(configuration));
+        first.Extend(other);
+        return first;
     }
 
-    public Dictionary<byte, uint> ScoreAllActions()
+    public override string ToString()
     {
-        var scoreUpdates = new Dictionary<byte, uint>();
-        foreach (var (name, action) in _registeredActions)
-        {
-            // this really really long line gets the StateCount value from the NeedsHistoryAttribute on the first
-            // parameter of the ScoreAction method, or 1 if the attribute is not present
-            var statesNeeded = action.GetType().GetMethod(nameof(AbstractOvertakerAction.ScoreAction))?.GetParameters()
-                .FirstOrDefault()
-                ?.GetCustomAttribute(typeof(StateHistory.NeedsHistoryAttribute), true)
-                .Cast<StateHistory.NeedsHistoryAttribute>()?.StateCount ?? 1;
-            // actions depend on there being a certain number of states in the history; so, if there aren't enough
-            // states, we can't score the action
-            var availableStateCount = StateHistory.CurrentHistory.TickStates.Count;
-            if (availableStateCount < statesNeeded)
-            {
-                Logger.Debug(
-                    "\"{ActionName}\" action needs {StatesNeeded} states, but only {StatesAvailable} are available",
-                    name, statesNeeded, availableStateCount);
-                continue;
-            }
+        return $"ActionHistory: {TotalScore} points, {_scores.Count} actions";
+    }
 
-            var stateHistory = StateHistory.CurrentHistory.TickStates
-                .Reverse()
-                .Take(statesNeeded)
-                .ToList();
-            var innerScoreUpdates = action.ScoreAction(stateHistory);
-            if (innerScoreUpdates.Count == 0)
-                continue;
-            // TODO: add to history
-            Logger.Debug("Action {ActionName} scored {ScoreUpdates}", name, innerScoreUpdates);
-            foreach (var (sessionId, scoreUpdate) in innerScoreUpdates)
-            {
-                if (scoreUpdates.ContainsKey(sessionId))
-                    scoreUpdates[sessionId] += scoreUpdate;
-                else
-                    scoreUpdates.Add(sessionId, scoreUpdate);
-            }
-        }
+    public void Add(ActionScore score)
+    {
+        _scores.Add(score);
+    }
 
-        return scoreUpdates;
+    public void Extend(ActionHistory other)
+    {
+        _scores.AddRange(other._scores);
+    }
+
+    public IEnumerator<ActionScore> GetEnumerator()
+    {
+        return _scores.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

@@ -21,5 +21,5 @@ public abstract class AbstractOvertakerAction
     /// </summary>
     /// <param name="stateHistory">State history. See StateHistory.NeedsHistory for how to populate this.</param>
     /// <returns>Score updates</returns>
-    public abstract Dictionary<byte, uint> ScoreAction(List<TickState> stateHistory);
+    public abstract Dictionary<byte, ActionScore> ScoreAction(List<TickState> stateHistory);
 }
