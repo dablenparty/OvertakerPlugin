@@ -9,7 +9,7 @@ public class StateHistory : LazySingleton<StateHistory>
     {
     }
 
-    internal FixedSizedStack<TickState> TickStates { get; } = new(100);
+    internal FixedSizedQueue<TickState> TickStates { get; } = new(100);
 
     /// <summary>
     ///     Indicates that a new tick has happened, and that a new state should be added to the history.
@@ -18,7 +18,7 @@ public class StateHistory : LazySingleton<StateHistory>
     public static void NewTickHappened(EntryCarManager entryCarManager)
     {
         var tickState = new TickState(entryCarManager.EntryCars, DateTime.Now);
-        Instance.TickStates.Push(tickState);
+        Instance.TickStates.Enqueue(tickState);
     }
 
     /// <summary>
