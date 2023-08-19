@@ -46,9 +46,7 @@ public class ActionRunner : LazySingleton<ActionRunner>
                 continue;
             }
 
-            // TODO: replace this with a FixedSizeStack<T> or something
             var stateHistory = StateHistory.Instance.TickStates
-                .Reverse()
                 .Take(statesNeeded)
                 .ToList();
             var innerScoreUpdates = action.ScoreAction(stateHistory);
