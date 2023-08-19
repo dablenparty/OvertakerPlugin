@@ -54,7 +54,6 @@ public class ActionRunner : LazySingleton<ActionRunner>
             var innerScoreUpdates = action.ScoreAction(stateHistory);
             if (innerScoreUpdates.Count == 0)
                 continue;
-            // TODO: add to history
             Logger.Debug("Action {ActionName} scored {ScoreUpdates}", name, innerScoreUpdates);
             foreach (var (sessionId, scoreUpdate) in innerScoreUpdates)
                 if (scoreUpdates.TryGetValue(sessionId, out var existingScoreUpdate))
