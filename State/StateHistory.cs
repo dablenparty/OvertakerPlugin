@@ -1,18 +1,15 @@
 ﻿using AssettoServer.Server;
+using OvertakerPlugin.Utility;
 
 namespace OvertakerPlugin.State;
 
-public class StateHistory
+public class StateHistory : LazySingleton<StateHistory>
 {
     private StateHistory()
     {
     }
 
-    public static StateHistory CurrentHistory { get; } = new();
-
     internal FixedSizedQueue<TickState> TickStates { get; } = new(100);
-
-    internal TickState this[int idx] => TickStates.ElementAt(idx);
 
     /// <summary>
     ///     Indicates that a new tick has happened, and that a new state should be added to the history.
@@ -21,7 +18,7 @@ public class StateHistory
     public static void NewTickHappened(EntryCarManager entryCarManager)
     {
         var tickState = new TickState(entryCarManager.EntryCars, DateTime.Now);
-        CurrentHistory.TickStates.Enqueue(tickState);
+        Instance.TickStates.Enqueue(tickState);
     }
 
     /// <summary>
