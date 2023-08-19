@@ -34,7 +34,7 @@ public class ActionRunner : LazySingleton<ActionRunner>
             var statesNeeded = action.GetType().GetMethod(nameof(AbstractOvertakerAction.ScoreAction))?.GetParameters()
                 .FirstOrDefault()
                 ?.GetCustomAttribute(typeof(StateHistory.NeedsHistoryAttribute), true)
-                .Cast<StateHistory.NeedsHistoryAttribute>()?.StateCount ?? 1;
+                ?.Cast<StateHistory.NeedsHistoryAttribute>()?.StateCount ?? 1;
             // actions depend on there being a certain number of states in the history; so, if there aren't enough
             // states, we can't score the action
             var availableStateCount = StateHistory.Instance.TickStates.Count;
