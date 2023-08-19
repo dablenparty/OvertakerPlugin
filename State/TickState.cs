@@ -6,7 +6,7 @@ public readonly struct TickState
 {
     public Dictionary<byte, CarState> CarStates { get; } = new();
     public DateTime TimeOfTick { get; }
-    
+
     public CarState this[byte sessionId] => CarStates[sessionId];
 
     public TickState(IEnumerable<EntryCar> entryCars, DateTime timeOfTick)
@@ -20,6 +20,7 @@ public readonly struct TickState
                 entryCar.Status.Position = positionUpdate.Position;
                 entryCar.Status.Velocity = positionUpdate.Velocity;
             }
+
             var carState = new CarState(entryCar);
             CarStates[entryCar.SessionId] = carState;
         }

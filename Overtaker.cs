@@ -54,7 +54,6 @@ public class Overtaker : CriticalBackgroundService, IAssettoServerAutostart
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
-        {
             await Task.Run(() =>
             {
                 StateHistory.NewTickHappened(_entryCarManager);
@@ -66,6 +65,5 @@ public class Overtaker : CriticalBackgroundService, IAssettoServerAutostart
                     _scores[key] += value;
                 // TODO: save scores to file
             }, stoppingToken);
-        }
     }
 }

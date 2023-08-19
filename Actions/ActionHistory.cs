@@ -12,6 +12,16 @@ public class ActionHistory : IEnumerable<ActionScore>
 
     public uint TotalScore => _scores.Aggregate(0u, (current, score) => current + score.Score);
 
+    public IEnumerator<ActionScore> GetEnumerator()
+    {
+        return _scores.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
     public static ActionHistory operator +(ActionHistory first, ActionHistory other)
     {
         first.Extend(other);
@@ -31,15 +41,5 @@ public class ActionHistory : IEnumerable<ActionScore>
     public void Extend(ActionHistory other)
     {
         _scores.AddRange(other._scores);
-    }
-
-    public IEnumerator<ActionScore> GetEnumerator()
-    {
-        return _scores.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
     }
 }

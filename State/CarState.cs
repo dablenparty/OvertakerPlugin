@@ -9,7 +9,7 @@ public readonly struct CarState : IEquatable<CarState>
     private EntryCar EntryCarRef { get; }
 
     /// <summary>
-    /// true if this car is controlled by AI, false if it is controlled by a player
+    ///     true if this car is controlled by AI, false if it is controlled by a player
     /// </summary>
     public bool AiControlled { get; }
 
@@ -27,7 +27,7 @@ public readonly struct CarState : IEquatable<CarState>
     ///     Velocity measured in meters per second
     /// </summary>
     public Vector3 Velocity { get; } = new();
-    
+
     /// <summary>
     ///     This car's session ID
     /// </summary>
